@@ -19,10 +19,22 @@ import  re
 app=Flask(__name__)
 app.secret_key='hfbfe78hjefk'
 app.config['SESSION_TYPE']='filesystem'
+db=os.environ['RDS_DB_NAME']
+user=os.environ['RDS_USERNAME']
+password=os.environ['RDS_PASSWORD']
+host=os.environ['RDS_HOSTNAME']
+port=os.environ['RDS_PORT']
 stripe.api_key='sk_test_51MzuqjSBGy9yhE2kI5aTydv4Rc8uUF1zIJVwH4BCXzwtFtyuWbQR0NcCieF8zzAKffBqWy7yBakNXoLDW7hg8h1p00VpKFHJDw'
-#mydb=mysql.connector.connect(host=host,user=user,password=password,db=db,port=port)
-mydb=mysql.connector.connect(host='localhost',user='root',password='anusha@1999',db='ecommerceproject')
-
+mydb=mysql.connector.connect(host=host,user=user,password=password,db=db,port=port)
+#mydb=mysql.connector.connect(host='localhost',user='root',password='anusha@1999',db='ecommerceproject')
+with mysql.connector.connect(host=host,user=user,password=password,db=db,port=port) as conn:
+    cursor=conn.cursor()
+    cursor.execute("create table if not exists signup(username varchar(30) primary key,mobile bigint unique,email varchar(70) unique,address varchar(200),password varchar(40))")
+    cursor.execute("create table if not exists additems(itemid varchar(30) primary key,name varchar(30),discription longtext,qty varchar(20),category enum('electronics','grocery','fashion','home'),price varchar(30))")
+    cursor.execute("create table if not exists orders(ordid int primary key auto_increment, itemid varchar(30),username varchar(30),name varchar(30),qty varchar(20),total_price int,foreign key (itemid) references additems(itemid),foreign key(username) references signup(username))")
+    cursor.execute("create table if not exists reviews(username varchar(30),itemid varchar(30),title tinytext,review text,rating int,foreign key(username) references signup(username) on update cascade on delete cascade,foreign key(itemid) references additems(itemid) on update cascade on delete cascade,primary key(username,itemid),date datetime default now())")   
+    cursor.execute("create table if not exists adminsignup(name varchar(30),mobile bigint primary key,email varchar(50) unique,password varchar(40))")
+    cursor.execute("create table if not exists contactus(name varchar(30),emailid varchar(40),message tinytext)")
 Session(app)
 @app.route('/')
 def index():
