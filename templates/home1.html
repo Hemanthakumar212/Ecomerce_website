@@ -3,10 +3,12 @@
 <html lang="en">
 <head>
   <title>Ecommerce Website</title>
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="/static/home.css">
+  <link rel="icon" type="image/png" href="https://e7.pngegg.com/pngimages/167/450/png-clipart-yellow-shopping-cart-angle-area-symbol-yellow-ecommerce-angle-web-design-thumbnail.png">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
  
@@ -35,10 +37,10 @@
       
       <li id="go"><a href="/viewcart" id="go"><i class="fa-sharp fa-solid fa-cart-shopping"></i>Cart</a></li>
       <li class="dropdown" id="go"><a class="dropdown-toggle" data-toggle="dropdown" href="#" id="go">Category<span class="caret"></span></a>
-        <ul class="dropdown-menu" id="go">
-          <li id="go"><a href="{{url_for('homepage',category='electronics')}}" id="go">Electronics</a></li>
+        <ul class="dropdown-menu" id="go go-drop">
+          <!-- <li id="go"><a href="{{url_for('homepage',category='electronics')}}" id="go">Electronics</a></li> -->
           <li id="go"><a href="{{url_for('homepage',category='grocery')}}"id="go">Grocery</a></li>
-          <li id="go"><a href="{{url_for('homepage',category='home')}}" id="go">Home</a></li>
+          <!-- <li id="go"><a href="{{url_for('homepage',category='home')}}" id="go">Home</a></li> -->
           <li id="go"><a href="{{url_for('homepage',category='fashion')}}" id="go">Fashion</a></li>
           <li id="go"><a href="{{url_for('dashboardpage')}}" id="go">All</a></li>
           
@@ -73,11 +75,11 @@
         </div>
       </div>
       <br>
-      <div class="bgcolor pt-5 pb-5" ><br>
+      <!-- <div class="bgcolor pt-5 pb-5" ><br>
         <div class="container">
-            <div class="row">
+            <div class="row"> -->
                 
-                <div class="col-12 col-md-3" >
+                <!-- <div class="col-12 col-md-3" >
                     <div class="carding p=3">
                         <img src="https://media.istockphoto.com/id/1370468785/photo/a-nude-eyeshadow-palette-and-makeup-artists-tools-on-a-marble-vanity-brushes-for-powder-blush.jpg?b=1&s=170667a&w=0&k=20&c=VlPBsgdYqmi6og8Ew9NegTDrZ5qc6zxKW0l1kDru5hc=" class="cardimage"/>
                         <h1 class="chead">Fashion</h1>
@@ -86,33 +88,34 @@
                     </div>
                 </div>
                 <div class="col-12 col-md-3">
+                  <div class="cardings p=3">
+                      <img src="https://hips.hearstapps.com/hmg-prod/images/hungryroot-1658507018.png" class="cardimage"/>
+                      <h1 class="chead">Grocery</h1>
+                      <a href="{{url_for('homepage',category='grocery')}}"id="go">View more<i class="fa-solid fa-arrow-right"></i></a>
+                      <p class="cpara">Shop Grocery</p>
+                  </div> -->
+                <!-- <div class="col-12 col-md-3">
                     <div class="carding p=3">
                         <img src="https://imgnew.outlookindia.com/uploadimage/library/16_9/16_9_5/IMAGE_1672213252.jpg" class="cardimage"/>
                         <h1 class="chead">Home Applainces</h1>
                         <a href="{{url_for('homepage',category='home')}}"id="go">View more<i class="fa-solid fa-arrow-right"></i></a>
                         <p class="cpara">Shop for your home</p>
-                    </div>
+                    </div> -->
                 </div>
-                <div class="col-12 col-md-3">
-                  <div class="carding p=3">
-                      <img src="https://hips.hearstapps.com/hmg-prod/images/hungryroot-1658507018.png" class="cardimage"/>
-                      <h1 class="chead">Grocery</h1>
-                      <a href="{{url_for('homepage',category='grocery')}}"id="go">View more<i class="fa-solid fa-arrow-right"></i></a>
-                      <p class="cpara">Shop Grocery</p>
-                  </div>
+                
               </div>
-                <div class="col-12 col-md-3">
+                <!-- <div class="col-12 col-md-3">
                     <div class="carding p=3">
                         <img src="https://media.istockphoto.com/id/642182562/photo/modern-computer-devices.jpg?s=1024x1024&w=is&k=20&c=wwgylH8VDfn-uF2ytLmSGUz4Z6oxC4aEIM9RjwapcSg=" class="cardimage"/>
                         <h1 class="chead">Electronics</h1>
                         <a href="{{url_for('homepage',category='electronics')}}"id="go">View more<i class="fa-solid fa-arrow-right"></i></a>
                         <p class="cpara">Shop all latest Portable Devices</p>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
       </div>
-      <div class="container">
+      <!-- <div class="container">
             <div class="row">
           {% for i in items %} 
                 
@@ -142,7 +145,7 @@
                   
                 </div>
               </div>
-          {% endfor %}
+          {% endfor %} -->
 
           </div>
           </div>

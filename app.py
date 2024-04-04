@@ -1,4 +1,4 @@
-from flask import Flask,redirect,request,render_template,url_for,flash,session,send_file
+from flask import Flask,redirect,request,render_template,url_for,flash,session,send_file,jsonify
 #from flask_mysqldb import MySQL
 import mysql.connector
 from flask_session import Session
@@ -10,27 +10,35 @@ from adminmail import adminsendmail
 import stripe
 import os
 import random
-import stripe
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from tokenreset import token
 from admintokenreset import admintoken
 from io import BytesIO
 import  re
 app=Flask(__name__)
-app.secret_key='hfbfe78hjefk'
+# app.secret_key='hfbfe78hjefk'
 app.config['SESSION_TYPE']='filesystem'
-db=os.environ['RDS_DB_NAME']
-user=os.environ['RDS_USERNAME']
-password=os.environ['RDS_PASSWORD']
-host=os.environ['RDS_HOSTNAME']
-port=os.environ['RDS_PORT']
-stripe.api_key='sk_test_51MzuqjSBGy9yhE2kI5aTydv4Rc8uUF1zIJVwH4BCXzwtFtyuWbQR0NcCieF8zzAKffBqWy7yBakNXoLDW7hg8h1p00VpKFHJDw'
-mydb=mysql.connector.connect(host=host,user=user,password=password,db=db,port=port)
-#mydb=mysql.connector.connect(host='localhost',user='root',password='anusha@1999',db='ecommerceproject')
-with mysql.connector.connect(host=host,user=user,password=password,db=db,port=port) as conn:
+# db=os.environ['RDS_DB_NAME']
+# user=os.environ['RDS_USERNAME']
+# password=os.environ['RDS_PASSWORD']
+# host=os.environ['RDS_HOSTNAME']
+# port=os.environ['RDS_PORT']
+#mysql = MySQL()
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'admin'
+app.config['MYSQL_DB'] = 'emp'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+# stripe.api_key='sk_test_51Oy6LoSDEdHkmMG3naSGoJv4ycQ1P8cW01YzWlMA6z5iKidaLJC8oQ7h5O4dkI0Cz57skbHyF3E79a5ysDTyA2PV00NlisoXr1'
+# stripe.api_key = 'sk_test_51NTKipSDmVNK7hRpj4DLpymMTojbp0sntuHknEF9Kv3cGY79VkNbmBcfxDmTLXa9UIGKiiqp8drQQhzsjoia58Sm00Kuzg9vYt'
+stripe.api_key='sk_test_51NH9ERSHahk6wnPYDNqqG9F0JmsxcTqbwkswSOVEDx2YzCk3gGzZkcCkanDDyt3wu9UvVd14hCQywqZFI2TzfMX000ZN4Te1t2'
+
+#mydb=mysql.connector.connect(host='localhost',user='root',password='',db='',port=port)
+mydb=mysql.connector.connect(host='localhost',user='root',password='admin',db='emp')
+with mysql.connector.connect(host='localhost',user='root',password='admin',db='emp') as conn:
     cursor=conn.cursor()
     cursor.execute("create table if not exists signup(username varchar(30) primary key,mobile bigint unique,email varchar(70) unique,address varchar(200),password varchar(40))")
-    cursor.execute("create table if not exists additems(itemid varchar(30) primary key,name varchar(30),discription longtext,qty varchar(20),category enum('electronics','grocery','fashion','home'),price varchar(30))")
+    cursor.execute("create table if not exists additems(itemid varchar(30) primary key,name varchar(30),discription longtext,qty varchar(20),category enum('','grocery','fashion','home'),price varchar(30))")
     cursor.execute("create table if not exists orders(ordid int primary key auto_increment, itemid varchar(30),username varchar(30),name varchar(30),qty varchar(20),total_price int,foreign key (itemid) references additems(itemid),foreign key(username) references signup(username))")
     cursor.execute("create table if not exists reviews(username varchar(30),itemid varchar(30),title tinytext,review text,rating int,foreign key(username) references signup(username) on update cascade on delete cascade,foreign key(itemid) references additems(itemid) on update cascade on delete cascade,primary key(username,itemid),date datetime default now())")   
     cursor.execute("create table if not exists adminsignup(name varchar(30),mobile bigint primary key,email varchar(50) unique,password varchar(40))")
@@ -419,39 +427,111 @@ def orders():
         cursor.execute('select * from orders where username=%s', (session['user'],))
         orders=cursor.fetchall()
         return render_template('orders.html',orders=orders)
-@app.route('/pay/<itemid>/<name>/<int:price>',methods=['POST'])
+    
+# @app.route('/pay/<itemid>/<name>/<int:price>',methods=['POST'])
+# def pay(itemid,price,name):
+#     if session.get('user'):
+#         q=int(request.form['qty'])
+#         username=session.get('user')
+#         total=price*q
+#         checkout_session=stripe.checkout.Session.create(
+#             success_url=url_for('success',itemid=itemid,name=name,q=q,total=total,_external=True),
+#             line_items=[
+#                 {
+#                     'price_data': {
+#                         'product_data': {
+#                             'name': name,
+#                         },
+#                         'unit_amount': price*100,
+#                         'currency': 'inr',
+#                     },
+#                     'quantity': q,
+#                 },
+#                 ],
+#             mode="payment",)
+#         return redirect(checkout_session.url)
+#     else:
+#         return redirect(url_for('login'))
+
+@app.route('/pay/<itemid>/<name>/<int:price>', methods=['GET', 'POST'])
 def pay(itemid,price,name):
-    if session.get('user'):
-        q=int(request.form['qty'])
-        username=session.get('user')
-        total=price*q
-        checkout_session=stripe.checkout.Session.create(
-            success_url=url_for('success',itemid=itemid,name=name,q=q,total=total,_external=True),
-            line_items=[
-                {
-                    'price_data': {
-                        'product_data': {
-                            'name': name,
+    try:
+        if session.get('user'):
+            q=int(request.form['qty'])
+            username=session.get('user')
+            total=price*q
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'inr',
+                            'product_data': {
+                                'name': name,
+                            },
+                            'unit_amount': price*100,  # Price in paise (1500 paise = 15 INR)
                         },
-                        'unit_amount': price*100,
-                        'currency': 'inr',
+                        'quantity': q,
                     },
-                    'quantity': q,
-                },
                 ],
-            mode="payment",)
-        return redirect(checkout_session.url)
-    else:
-        return redirect(url_for('login'))
+                mode='payment',
+                success_url=url_for('success',itemid=itemid,name=name,q=q,total=total, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=url_for('cancel',itemid=itemid,name=name,q=q,total=total, _external=True),
+            )
+            return redirect(checkout_session.url, code=303)
+        else:
+            return redirect(url_for('login'))
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+
+# @app.route('/pay/<itemid>/<name>/<int:price>', methods=['POST'])
+# def pay(itemid, price, name):
+#     if session.get('user'):
+#         q = int(request.form['qty'])
+#         username = session.get('user')
+#         total = price * q
+        
+#         checkout_session = stripe.checkout.Session.create(
+#             success_url=url_for('success', itemid=itemid, name=name, q=q, total=total, _external=True),
+#             line_items=[
+#                 {
+#                     'price_data': {
+#                         'product_data': {
+#                             'name': name,
+#                         },
+#                         'unit_amount': price * 100,
+#                         'currency': 'inr',
+#                     },
+#                     'quantity': q,
+#                 },
+#             ],
+#             mode="payment",
+#             customer_email='ramtharaknadhalla@gmail.com',  # Assuming user's email as customer email
+#             shipping_address_collection={
+#                 'allowed_countries': ['IN'],  # Specify the allowed countries for shipping
+#             },
+#             payment_intent_data={
+#                 'description': f"Payment for {q} {name}(s)",
+#             }
+#         )
+#         return redirect(checkout_session.url)
+#     else:
+#         return redirect(url_for('login'))
+        
 @app.route('/success/<itemid>/<name>/<q>/<total>')
-def success(itemid,name,q,total):
+def success(itemid, name, q, total):
     if session.get('user'):
-        print(session.get('user'))
-        cursor=mydb.cursor(buffered=True)
-        cursor.execute('insert into orders(itemid,name,qty,total_price,username) values(%s,%s,%s,%s,%s)',[itemid,name,q,total,session.get('user')])
+        cursor = mydb.cursor(buffered=True)
+        cursor.execute('insert into orders(itemid, name, qty, total_price, username) values(%s, %s, %s, %s, %s)', [itemid, name, q, total, session.get('user')])
         mydb.commit()
-        return 'Order Placed'
+        return render_template('order.html')
     return redirect(url_for('login'))
+
+@app.route('/cancel/<itemid>/<name>/<q>/<total>')
+def cancel(itemid, name, q, total):
+    return render_template('payment.html')
+
 @app.route('/review/<itemid>',methods=['GET','POST'])
 def review(itemid):
     if session.get('user'):
